@@ -6,61 +6,44 @@
     "language": "nl",
     "url": "https://financien.belgium.be/nl/douane_accijnzen/ondernemingen/douane/oorsprong",
     "extracted_at": "2026-05-13",
-    "disclaimer": "Informatief overzicht. Alleen teksten in Publicatieblad EU (EUR-LEX) zijn authentiek. Verifieer steeds tegen de officiële bron."
+    "disclaimer": "Informatief overzicht. Alleen teksten in Publicatieblad EU (EUR-LEX) zijn authentiek. Verifieer steeds tegen de officiële bron.",
+    "schema_version": "2.0",
+    "schema_note": "v2 splitst per akkoord een 'export' (EU → bestemmingsland) en 'import' (bestemmingsland → EU) sectie. Elk bevat een lijst van proof_types met naam, optionele TARIC-code, eventuele drempel en bijzondere vereisten."
   },
-  "proof_types": {
+  "proof_type_registry": {
     "EUR1": {
-      "name": "Certificaat inzake goederenverkeer EUR.1",
-      "description": "Door douane afgegeven oorsprongscertificaat",
-      "taric_doc_code": "N865"
+      "name": "Certificaat inzake goederenverkeer EUR.1"
     },
     "EUR_MED": {
-      "name": "Certificaat EUR-MED",
-      "description": "Variant op EUR.1 voor diagonale cumulatie binnen PEM-zone (oude regels)",
-      "taric_doc_code": "N954"
+      "name": "Certificaat EUR-MED"
     },
     "INVOICE_DECLARATION": {
-      "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
-      "description": "Tot 6.000 EUR door elke exporteur; boven 6.000 EUR enkel door toegelaten exporteur",
-      "taric_doc_code": "N864",
-      "threshold_eur": 6000
+      "name": "Oorsprongsverklaring op factuur of ander handelsdocument"
     },
     "INVOICE_DECLARATION_EUR_MED": {
-      "name": "Oorsprongsverklaring EUR-MED op factuur",
-      "description": "Variant op factuurverklaring voor PEM-zone met diagonale cumulatie (oude regels)",
-      "taric_doc_code": "N953"
+      "name": "Oorsprongsverklaring EUR-MED op factuur"
     },
     "STATEMENT_OF_ORIGIN_REX": {
-      "name": "Attest van oorsprong (REX)",
-      "description": "Geregistreerd exporteurs-systeem; REX-nummer verplicht boven 6.000 EUR",
-      "taric_doc_code": "U165",
-      "threshold_eur": 6000
+      "name": "Attest van oorsprong (met REX-nummer)"
+    },
+    "STATEMENT_OF_ORIGIN_LOCAL": {
+      "name": "Attest van oorsprong (met lokaal registratienummer)"
+    },
+    "STATEMENT_OF_ORIGIN_MERCOSUR_CERT": {
+      "name": "Certificaat van oorsprong (Mercosur Bijlage 3-D)"
     },
     "IMPORTERS_KNOWLEDGE": {
-      "name": "Aan de importeur bekende informatie (Importer's Knowledge)",
-      "description": "Geen oorsprongsbewijs van exporteur; importeur claimt op basis van eigen kennis"
+      "name": "Aan de importeur bekende informatie (Importer's Knowledge)"
     },
     "ATR": {
-      "name": "A.TR certificaat",
-      "description": "Bewijs van vrij verkeer (niet oorsprong) binnen EU-Turkije douane-unie",
-      "taric_doc_code": "N018"
+      "name": "A.TR certificaat (vrij verkeer, géén oorsprong)"
     },
     "T2_T2L": {
-      "name": "T2 / T2L documenten",
-      "description": "Bewijs van vrij verkeer binnen douane-unie (San Marino, Andorra industrieel)"
+      "name": "T2 / T2L (vrij verkeer binnen douane-unie)"
     },
     "EUR1_CMR": {
-      "name": "EUR.1-CMR (Kameroen-specifiek)",
-      "description": "Kameroense variant voor EU→Kameroen export"
+      "name": "EUR.1-CMR (Kameroense variant)"
     }
-  },
-  "pem_status_codes": {
-    "R": "Herziene PEM-conventie 2023 toegepast",
-    "C": "2012 PEM-oorsprongsregels (Conventie) nog van toepassing",
-    "R/T": "EU past Herziene Conventie toe bij uitvoer; partij past transitional rules toe bij uitvoer naar EU",
-    "T": "Transitional rules (2021)",
-    "CR": "Was vóór 31/12/2025 — overgangsbepaling vervallen",
-    "N/A": "Niet van toepassing"
   },
   "agreements": [
     {
@@ -75,20 +58,62 @@
       "pem_status": "R",
       "drawback_allowed": true,
       "drawback_note": "Drawback toegestaan onder Herziene Conventie; verbod blijft voor textiel GS 50-63 onder specifieke voorwaarden",
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "in_force_since": null,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "legal_basis": [
         "Besluit Nr. 1/2023 Gemengd Comité PEM-Conventie [2024/390]",
         "Besluit nr. 2/2016 Gemengd Comité EU-Zwitserland (2016/121)"
       ],
-      "notes": []
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "EEA",
-      "country_iso": ["IS", "LI", "NO"],
+      "country_iso": [
+        "IS",
+        "LI",
+        "NO"
+      ],
       "country_name_nl": "Europese Economische Ruimte (EER)",
       "country_name_en": "European Economic Area",
       "zone": "PEM",
@@ -97,14 +122,54 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "legal_basis": [
         "Besluit Nr. 1/2023 Gemengd Comité PEM-Conventie [2024/390]",
         "Besluit EER nr. 163/2022 [2022/1607]"
-      ]
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "NO",
@@ -117,11 +182,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 1/2021 Gemengd Comité EU-Noorwegen [2021/1905]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 1/2021 Gemengd Comité EU-Noorwegen [2021/1905]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "FO",
@@ -134,11 +241,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 1/2021 Gemengd Comité EG-Denemarken-Faeroer [2021/1906]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 1/2021 Gemengd Comité EG-Denemarken-Faeroer [2021/1906]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "IS",
@@ -151,11 +300,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 1/2021 Gemengd Comité EU-IJsland [2021/1857]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 1/2021 Gemengd Comité EU-IJsland [2021/1857]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "LI",
@@ -168,11 +359,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Zie EER en Zwitserland"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Zie EER en Zwitserland"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "AD_FOOD",
@@ -184,12 +417,53 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": false,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 4,
-      "cumulation": ["bilateral"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral"
+      ],
       "hs_chapters": "01-24",
-      "legal_basis": ["Briefwisseling EEG-Andorra PB L 374 31/12/1990", "Besluit nr. 1/2015 [2015/2468]"]
+      "legal_basis": [
+        "Briefwisseling EEG-Andorra PB L 374 31/12/1990",
+        "Besluit nr. 1/2015 [2015/2468]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "AD_INDUSTRIAL",
@@ -200,14 +474,37 @@
       "subzone": "DOUANE_UNIE",
       "agreement_type": "customs_union",
       "is_customs_union": true,
-      "drawback_allowed": null,
-      "proof_types": ["T2_T2L"],
-      "validity_months": null,
       "cumulation": [],
-      "retroactive_years": null,
       "hs_chapters": "25-97",
-      "legal_basis": ["Besluit nr. 1/2003 Gemengd Comité EG-Andorra PB L 253 7/10/2003"],
-      "notes": ["Geen oorsprongsbewijs vereist; vrij verkeer binnen douane-unie"]
+      "legal_basis": [
+        "Besluit nr. 1/2003 Gemengd Comité EG-Andorra PB L 253 7/10/2003"
+      ],
+      "notes": [
+        "Geen oorsprongsbewijs vereist; vrij verkeer binnen douane-unie"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "T2_T2L",
+            "name": "T2 / T2L (vrij verkeer binnen douane-unie)",
+            "note": "Geen oorsprongsbewijs vereist; vrij verkeer"
+          }
+        ],
+        "validity_months": null,
+        "retroactive_years": null,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "T2_T2L",
+            "name": "T2 / T2L (vrij verkeer binnen douane-unie)"
+          }
+        ],
+        "validity_months": null,
+        "retroactive_years": null,
+        "notes": []
+      }
     },
     {
       "id": "DZ",
@@ -221,11 +518,77 @@
       "pem_status": "C",
       "drawback_allowed": true,
       "drawback_note": "Drawback enkel mogelijk in kader van bilaterale handel tussen EU en Algerije",
-      "proof_types": ["EUR1", "EUR_MED", "INVOICE_DECLARATION"],
-      "validity_months": 4,
-      "cumulation": ["bilateral", "diagonal_pem", "full_eu_only"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 2/2007 Associatieraad EU-Algerije PB L 297 15/11/2007"]
+      "cumulation": [
+        "bilateral",
+        "diagonal_pem",
+        "full_eu_only"
+      ],
+      "legal_basis": [
+        "Besluit nr. 2/2007 Associatieraad EU-Algerije PB L 297 15/11/2007"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "EUR_MED",
+            "name": "Certificaat EUR-MED",
+            "taric_code": "N954"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          },
+          {
+            "id": "INVOICE_DECLARATION_EUR_MED",
+            "name": "Oorsprongsverklaring EUR-MED op factuur",
+            "taric_code": "N953",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "EUR_MED",
+            "name": "Certificaat EUR-MED",
+            "taric_code": "N954"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          },
+          {
+            "id": "INVOICE_DECLARATION_EUR_MED",
+            "name": "Oorsprongsverklaring EUR-MED op factuur",
+            "taric_code": "N953",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "TN",
@@ -239,12 +602,55 @@
       "pem_status": "R",
       "pem_status_since": "2026-01-01",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2025 Associatieraad EU-Tunesië [2025/324]"],
-      "notes": ["Vanaf 1 februari 2026 geen vermelding TRANSITIONAL RULES meer nodig op Tunesische oorsprongsbewijzen"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2025 Associatieraad EU-Tunesië [2025/324]"
+      ],
+      "notes": [
+        "Vanaf 1 februari 2026 geen vermelding TRANSITIONAL RULES meer nodig op Tunesische oorsprongsbewijzen"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "MA",
@@ -257,15 +663,55 @@
       "is_customs_union": false,
       "pem_status": "R/T",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "legal_basis": [
         "EU→MA: Herziene Conventie [2024/390]",
         "MA→EU: Transitional rules Besluit nr. 1/2025 [2025/2664]"
       ],
-      "special_marking": "Marokkaanse oorsprongsbewijzen: vermelding 'REVISED RULES' in vak 7 EUR.1; EU-exporteurs hoeven dit volgens Marokkaanse Circulaire N°6722/233 (10/02/2026) niet meer te vermelden"
+      "special_marking": "Marokkaanse oorsprongsbewijzen: vermelding 'REVISED RULES' in vak 7 EUR.1; EU-exporteurs hoeven dit volgens Marokkaanse Circulaire N°6722/233 (10/02/2026) niet meer te vermelden",
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "EH",
@@ -276,14 +722,53 @@
       "subzone": "MEDITERRAAN_MAGHREB",
       "agreement_type": "provisional",
       "is_customs_union": false,
-      "in_force_since": "2025-10-03",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
       "cumulation": [],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit (EU) 2025/2022 Raad", "Briefwisseling EU-Marokko PB L 2025/2025"],
-      "special_marking": "TARIC certificaatcodes U179 (EUR.1) of U180 (oorsprongsverklaring) met vermelding 'Dakhla Oued Ed-Dahab' of 'Laâyoune-Sakia El Hamra'"
+      "in_force_since": "2025-10-03",
+      "legal_basis": [
+        "Besluit (EU) 2025/2022 Raad",
+        "Briefwisseling EU-Marokko PB L 2025/2025"
+      ],
+      "special_marking": "TARIC certificaatcodes U179 (EUR.1) of U180 (oorsprongsverklaring) met vermelding 'Dakhla Oued Ed-Dahab' of 'Laâyoune-Sakia El Hamra'",
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "EG",
@@ -296,15 +781,55 @@
       "is_customs_union": false,
       "pem_status": "R/T",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "legal_basis": [
         "EU→EG: Herziene Conventie [2024/390]",
         "EG→EU: Transitional rules Besluit nr. 1/2024 [2024/2653]"
       ],
-      "special_marking": "Egyptische oorsprongsbewijzen: vermelding TRANSITIONAL RULES in vak 7 EUR.1. Aanbeveling: vermeld REVISED RULES voor EU→EG om cumulatiemogelijkheden te behouden."
+      "special_marking": "Egyptische oorsprongsbewijzen: vermelding TRANSITIONAL RULES in vak 7 EUR.1. Aanbeveling: vermeld REVISED RULES voor EU→EG om cumulatiemogelijkheden te behouden.",
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "LB",
@@ -316,12 +841,55 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": false,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 4,
-      "cumulation": ["bilateral", "diagonal_efta_only"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit 2006/356/EG PB L 143 30/6/2006"],
-      "notes": ["Diagonale cumulatie beperkt tot EVA-landen", "Libanon heeft Herziene Conventie nog niet geratificeerd"]
+      "cumulation": [
+        "bilateral",
+        "diagonal_efta_only"
+      ],
+      "legal_basis": [
+        "Besluit 2006/356/EG PB L 143 30/6/2006"
+      ],
+      "notes": [
+        "Diagonale cumulatie beperkt tot EVA-landen",
+        "Libanon heeft Herziene Conventie nog niet geratificeerd"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "SY",
@@ -334,16 +902,41 @@
       "is_customs_union": false,
       "drawback_allowed": true,
       "drawback_note": "Drawback in kader van bilaterale handel tussen EU en Syrië",
-      "proof_types": ["EUR1"],
-      "validity_months": 5,
-      "cumulation": ["bilateral"],
-      "retroactive_years": 2,
-      "legal_basis": ["Verordening (EEG) 2216/78 PB L 269 27/9/1978"],
+      "cumulation": [
+        "bilateral"
+      ],
+      "legal_basis": [
+        "Verordening (EEG) 2216/78 PB L 269 27/9/1978"
+      ],
       "notes": [
         "Sancties: invoer/uitvoer restricties — raadpleeg TARBEL",
         "Diagonale cumulatie in PEM niet mogelijk (associatieovereenkomst niet ondertekend)",
         "FORM A's en attesten van oorsprong uit Syrië NIET aanvaardbaar (REX niet geïmplementeerd)"
-      ]
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          }
+        ],
+        "validity_months": 5,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          }
+        ],
+        "validity_months": 5,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "JO",
@@ -356,11 +949,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2021 Associatieraad EU-Jordanië [2021/742]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2021 Associatieraad EU-Jordanië [2021/742]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "PS",
@@ -373,15 +1008,55 @@
       "is_customs_union": false,
       "pem_status": "R/T",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "legal_basis": [
         "EU→PS: Herziene Conventie [2024/390]",
         "PS→EU: Transitional rules Besluit nr. 1/2021 [2021/1487]"
       ],
-      "special_marking": "Palestijnse oorsprongsbewijzen: TRANSITIONAL RULES in vak 7 EUR.1"
+      "special_marking": "Palestijnse oorsprongsbewijzen: TRANSITIONAL RULES in vak 7 EUR.1",
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "IL",
@@ -394,12 +1069,54 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 1/2023 PEM-Conventie [2024/390]"],
-      "special_marking": "Vanaf 16/05/2023: uniecode Y864 verplicht in vak 44 invoeraangifte om aan te tonen dat goederen NIET uit nederzettingen onder Israëlisch bestuur sinds juni 1967 komen"
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 1/2023 PEM-Conventie [2024/390]"
+      ],
+      "special_marking": "Vanaf 16/05/2023: uniecode Y864 verplicht in vak 44 invoeraangifte om aan te tonen dat goederen NIET uit nederzettingen onder Israëlisch bestuur sinds juni 1967 komen",
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "TR_EGKS",
@@ -412,13 +1129,56 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "scope": "EGKS-goederen",
-      "legal_basis": ["Besluit Nr. 1/2023 PEM-Conventie [2024/390]"],
-      "notes": ["Voor classificatie EU-TR douane-unie vs EGKS vs landbouwovereenkomst: raadpleeg TARBEL"]
+      "legal_basis": [
+        "Besluit Nr. 1/2023 PEM-Conventie [2024/390]"
+      ],
+      "notes": [
+        "Voor classificatie EU-TR douane-unie vs EGKS vs landbouwovereenkomst: raadpleeg TARBEL"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "TR_AGRI",
@@ -431,12 +1191,54 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "scope": "landbouwproducten",
-      "legal_basis": ["Besluit Nr. 1/2023 PEM-Conventie [2024/390]"]
+      "legal_basis": [
+        "Besluit Nr. 1/2023 PEM-Conventie [2024/390]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "TR_CU",
@@ -447,16 +1249,43 @@
       "subzone": "DOUANE_UNIE",
       "agreement_type": "customs_union",
       "is_customs_union": true,
-      "drawback_allowed": null,
-      "proof_types": ["ATR"],
-      "validity_months": 4,
-      "cumulation": ["bilateral", "diagonal"],
-      "retroactive_years": 2,
+      "cumulation": [
+        "bilateral",
+        "diagonal"
+      ],
       "legal_basis": [
         "Besluit nr. 1/95 Associatieraad EG-Turkije PB L 35 13/2/1996",
         "Besluit Nr. 1/2025 Comité douanesamenwerking EU-Turkije [2025/1239] (elektronische A.TR)"
       ],
-      "notes": ["A.TR = bewijs van vrij verkeer, NIET van oorsprong", "Voor PEM-oorsprong: gebruik leveranciersverklaring"]
+      "notes": [
+        "A.TR = bewijs van vrij verkeer, NIET van oorsprong",
+        "Voor PEM-oorsprong: gebruik leveranciersverklaring"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "ATR",
+            "name": "A.TR certificaat (vrij verkeer, géén oorsprong)",
+            "taric_code": "N018",
+            "note": "A.TR bewijst vrij verkeer, NIET oorsprong"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "ATR",
+            "name": "A.TR certificaat (vrij verkeer, géén oorsprong)",
+            "taric_code": "N018"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "AL",
@@ -469,11 +1298,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2021 Stabilisatie-/associatieraad EG-Albanië [2023/2676]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2021 Stabilisatie-/associatieraad EG-Albanië [2023/2676]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "BA",
@@ -486,11 +1357,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2023 EU-Bosnië en Herzegovina [2024/245]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2023 EU-Bosnië en Herzegovina [2024/245]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "XK_SAA",
@@ -503,11 +1416,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2022 Stabilisatie-/associatieraad EU-Kosovo [2022/1685]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2022 Stabilisatie-/associatieraad EU-Kosovo [2022/1685]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "ME",
@@ -520,11 +1475,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 1/2022 EU-Montenegro [2022/904]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 1/2022 EU-Montenegro [2022/904]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "RS",
@@ -537,11 +1534,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2021 EU-Servië [2023/1320]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2021 EU-Servië [2023/1320]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "MK",
@@ -554,11 +1593,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2021 EU-Noord-Macedonië [2021/1931]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2021 EU-Noord-Macedonië [2021/1931]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "MD",
@@ -571,12 +1652,55 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2021 Subcomité douane EU-Moldavië [2022/165]"],
-      "notes": ["Territoriaal toepassingsgebied: NIET Transnistrië"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2021 Subcomité douane EU-Moldavië [2022/165]"
+      ],
+      "notes": [
+        "Territoriaal toepassingsgebied: NIET Transnistrië"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "GE",
@@ -589,11 +1713,53 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 1/2021 Subcomité Douane EU-Georgië [2021/1858]"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 1/2021 Subcomité Douane EU-Georgië [2021/1858]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "UA",
@@ -606,12 +1772,55 @@
       "is_customs_union": false,
       "pem_status": "R",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit nr. 1/2023 Subcomité douane EU-Oekraïne [2024/401]"],
-      "notes": ["Crimean Chamber of Commerce + Chamber of commerce Sevastopol: niet onder autonome regeling"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit nr. 1/2023 Subcomité douane EU-Oekraïne [2024/401]"
+      ],
+      "notes": [
+        "Crimean Chamber of Commerce + Chamber of commerce Sevastopol: niet onder autonome regeling"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "GB",
@@ -622,22 +1831,57 @@
       "subzone": "TCA",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2021-01-01",
       "drawback_allowed": true,
       "drawback_note": "Drawback toegestaan en blijft behouden na 31 december 2022",
-      "proof_types": ["IMPORTERS_KNOWLEDGE", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_UK": "Attest van oorsprong met REX-nummer verplicht boven 6.000 EUR",
-        "UK_to_EU": "Attest van oorsprong met Brits EORI-nummer (GB...) verplicht ongeacht waarde"
+      "cumulation": [
+        "bilateral",
+        "full"
+      ],
+      "in_force_since": "2021-01-01",
+      "legal_basis": [
+        "Besluit (EU) 2021/689 TCA PB L 149 30/4/2021"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 3,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "full"],
-      "retroactive_years": 3,
-      "legal_basis": ["Besluit (EU) 2021/689 TCA PB L 149 30/4/2021"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "requires_above_threshold": "local_exporter_id",
+            "note": "Brits EORI-nummer (GB...) verplicht ongeacht waarde"
+          },
+          {
+            "id": "IMPORTERS_KNOWLEDGE",
+            "name": "Aan de importeur bekende informatie (Importer's Knowledge)",
+            "note": "Mag ipv attest"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 3,
+        "notes": []
+      }
     },
     {
       "id": "ANDEAN",
-      "country_iso": ["CO", "PE", "EC"],
+      "country_iso": [
+        "CO",
+        "PE",
+        "EC"
+      ],
       "country_name_nl": "Andeslanden (Colombia, Peru, Ecuador)",
       "country_name_en": "Andean Community",
       "zone": "AMERICAS",
@@ -645,15 +1889,56 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 12,
-      "cumulation": ["bilateral", "diagonal"],
-      "retroactive_years": 2,
-      "legal_basis": ["Handelsovereenkomst EU-Colombia-Peru PB L 354 21/12/2012"],
+      "cumulation": [
+        "bilateral",
+        "diagonal"
+      ],
       "in_force_since": {
         "CO": "2013-08-01",
         "PE": "2013-03-01",
         "EC": "2017-01-01"
+      },
+      "legal_basis": [
+        "Handelsovereenkomst EU-Colombia-Peru PB L 354 21/12/2012"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
       }
     },
     {
@@ -665,18 +1950,47 @@
       "subzone": "CETA",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2017-09-21",
       "drawback_allowed": false,
       "drawback_note": "Drawback niet meer toegestaan vanaf 21/09/2020",
-      "proof_types": ["INVOICE_DECLARATION"],
-      "proof_modalities": {
-        "EU_to_CA": "Oorsprongsverklaring met REX-nummer verplicht boven 6.000 EUR",
-        "CA_to_EU": "Oorsprongsverklaring met Canadees Business Number verplicht ongeacht waarde"
+      "cumulation": [
+        "bilateral",
+        "full"
+      ],
+      "in_force_since": "2017-09-21",
+      "legal_basis": [
+        "CETA PB L 11 14/1/2017",
+        "Circulaire 2020/C/124 Fisconet"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": [
+          "Drawback niet meer toegestaan vanaf 21/09/2020"
+        ]
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["CETA PB L 11 14/1/2017", "Circulaire 2020/C/124 Fisconet"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "requires_above_threshold": "local_exporter_id",
+            "note": "Canadees Business Number verplicht, ongeacht waarde"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "CL",
@@ -687,21 +2001,53 @@
       "subzone": "CHILI",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2025-02-01",
       "drawback_allowed": true,
-      "proof_types": ["IMPORTERS_KNOWLEDGE", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_CL": "Attest van oorsprong met REX-nummer verplicht",
-        "CL_to_EU": "Attest van oorsprong met RUT-nummer (Rol Único Tributario) verplicht, ongeacht waarde"
+      "cumulation": [
+        "bilateral",
+        "extended"
+      ],
+      "in_force_since": "2025-02-01",
+      "legal_basis": [
+        "Interimovereenkomst EU-Chili PB L 2024/2953 20/12/2024"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "extended"],
-      "retroactive_years": 2,
-      "legal_basis": ["Interimovereenkomst EU-Chili PB L 2024/2953 20/12/2024"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "requires_above_threshold": "local_exporter_id",
+            "note": "RUT-nummer (Rol Único Tributario), ongeacht waarde"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "CACM",
-      "country_iso": ["HN", "NI", "PA", "CR", "SV", "GT"],
+      "country_iso": [
+        "HN",
+        "NI",
+        "PA",
+        "CR",
+        "SV",
+        "GT"
+      ],
       "country_name_nl": "Midden-Amerika (Honduras, Nicaragua, Panama, Costa Rica, El Salvador, Guatemala)",
       "country_name_en": "Central America",
       "zone": "AMERICAS",
@@ -709,39 +2055,116 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 12,
-      "cumulation": ["bilateral", "diagonal"],
-      "retroactive_years_eu_import": 2,
-      "retroactive_years_ca_import": 1,
-      "legal_basis": ["Associatieovereenkomst EU-Midden-Amerika PB L 346 15/12/2012"],
+      "cumulation": [
+        "bilateral",
+        "diagonal"
+      ],
       "in_force_since": {
-        "NI": "2013-08-01", "PA": "2013-08-01", "HN": "2013-08-01",
-        "CR": "2013-10-01", "SV": "2013-10-01",
+        "NI": "2013-08-01",
+        "PA": "2013-08-01",
+        "HN": "2013-08-01",
+        "CR": "2013-10-01",
+        "SV": "2013-10-01",
         "GT": "2013-12-01"
+      },
+      "legal_basis": [
+        "Associatieovereenkomst EU-Midden-Amerika PB L 346 15/12/2012"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": null,
+        "notes": []
       }
     },
     {
       "id": "MERCOSUR",
-      "country_iso": ["AR", "BR", "PY", "UY"],
+      "country_iso": [
+        "AR",
+        "BR",
+        "PY",
+        "UY"
+      ],
       "country_name_nl": "Mercosur (Argentinië, Brazilië, Paraguay, Uruguay)",
       "country_name_en": "Mercosur",
       "zone": "AMERICAS",
       "subzone": "MERCOSUR",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
+      "drawback_allowed": true,
+      "cumulation": [
+        "bilateral"
+      ],
       "in_force_since": "2026-05-01",
       "in_force_status": "provisional",
-      "drawback_allowed": true,
-      "proof_types": ["STATEMENT_OF_ORIGIN_REX", "CERTIFICATE_OF_ORIGIN_MERCOSUR"],
-      "proof_modalities": {
-        "EU_to_MERCOSUR": "Attest van oorsprong volgens Bijlage 3-C; REX-nummer verplicht",
-        "MERCOSUR_to_EU": "Attest van oorsprong met nationaal registratienummer (AR, BR, UY) OF certificaat van oorsprong volgens Bijlage 3-D (AR, BR, PY, UY)"
+      "legal_basis": [
+        "Interimovereenkomst EU-Mercosur PB L 2026/184 27/2/2026"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "Volgens Bijlage 3-C"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral"],
-      "retroactive_years": 2,
-      "legal_basis": ["Interimovereenkomst EU-Mercosur PB L 2026/184 27/2/2026"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "note": "Nationaal registratienummer (AR/BR/UY)"
+          },
+          {
+            "id": "STATEMENT_OF_ORIGIN_MERCOSUR_CERT",
+            "name": "Certificaat van oorsprong (Mercosur Bijlage 3-D)",
+            "note": "Volgens Bijlage 3-D (AR/BR/PY/UY)"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "MX",
@@ -753,16 +2176,83 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": false,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral"],
-      "retroactive_years_eu_import": 2,
-      "retroactive_years_mx_import": 1,
-      "legal_basis": ["Besluit nr. 2/2000 Gezamenlijke Raad EG-Mexico PB L 157 30/6/2000"]
+      "cumulation": [
+        "bilateral"
+      ],
+      "legal_basis": [
+        "Besluit nr. 2/2000 Gezamenlijke Raad EG-Mexico PB L 157 30/6/2000"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": null,
+        "notes": []
+      }
     },
     {
       "id": "MAR_ACS",
-      "country_iso": ["AG", "BS", "BB", "BZ", "BW", "DM", "DO", "FJ", "GH", "GD", "GY", "CI", "JM", "CM", "KE", "MG", "MU", "NA", "PG", "KN", "LC", "VC", "SC", "SR", "SZ", "TT", "ZW"],
+      "country_iso": [
+        "AG",
+        "BS",
+        "BB",
+        "BZ",
+        "BW",
+        "DM",
+        "DO",
+        "FJ",
+        "GH",
+        "GD",
+        "GY",
+        "CI",
+        "JM",
+        "CM",
+        "KE",
+        "MG",
+        "MU",
+        "NA",
+        "PG",
+        "KN",
+        "LC",
+        "VC",
+        "SC",
+        "SR",
+        "SZ",
+        "TT",
+        "ZW"
+      ],
       "country_name_nl": "MAR-ACS (Market Access Regulation)",
       "country_name_en": "MAR-ACS",
       "zone": "ACP",
@@ -770,11 +2260,53 @@
       "agreement_type": "non_reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Verordening (EU) 2016/1076 PB L 185 8/7/2016"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Verordening (EU) 2016/1076 PB L 185 8/7/2016"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "KE_EPA",
@@ -785,17 +2317,74 @@
       "subzone": "KENIA_EPA",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2024-07-01",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "notes": ["MAR-ACS oorsprongsregels worden wederkerig toegepast in afwachting van specifiek oorsprongsprotocol"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "in_force_since": "2024-07-01",
+      "legal_basis": [],
+      "notes": [
+        "MAR-ACS oorsprongsregels worden wederkerig toegepast in afwachting van specifiek oorsprongsprotocol"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "CARIFORUM",
-      "country_iso": ["AG", "BB", "BZ", "DM", "DO", "GD", "GY", "JM", "KN", "LC", "VC", "TT", "BS", "SR"],
+      "country_iso": [
+        "AG",
+        "BB",
+        "BZ",
+        "DM",
+        "DO",
+        "GD",
+        "GY",
+        "JM",
+        "KN",
+        "LC",
+        "VC",
+        "TT",
+        "BS",
+        "SR"
+      ],
       "country_name_nl": "CARIFORUM",
       "country_name_en": "CARIFORUM",
       "zone": "ACP",
@@ -803,15 +2392,62 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["EPA CARIFORUM-EG PB L 289 30/10/2008"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "EPA CARIFORUM-EG PB L 289 30/10/2008"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "PACIFIC",
-      "country_iso": ["FJ", "WS", "PG", "SB"],
+      "country_iso": [
+        "FJ",
+        "WS",
+        "PG",
+        "SB"
+      ],
       "country_name_nl": "Stille Oceaanstaten (Fiji, Samoa, PNG, Salomonseilanden)",
       "country_name_en": "Pacific States",
       "zone": "ACP",
@@ -819,18 +2455,69 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["EPA Stille Oceaan PB L 272 16/10/2009"],
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
       "in_force_since": {
-        "PG": "2009-12-20", "FJ": "2014-07-28", "WS": "2018-12-31", "SB": "2020-05-17"
+        "PG": "2009-12-20",
+        "FJ": "2014-07-28",
+        "WS": "2018-12-31",
+        "SB": "2020-05-17"
+      },
+      "legal_basis": [
+        "EPA Stille Oceaan PB L 272 16/10/2009"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
       }
     },
     {
       "id": "ESA",
-      "country_iso": ["KM", "MG", "SC", "MU", "ZW"],
+      "country_iso": [
+        "KM",
+        "MG",
+        "SC",
+        "MU",
+        "ZW"
+      ],
       "country_name_nl": "OZA (Comoren, Madagaskar, Seychellen, Mauritius, Zimbabwe)",
       "country_name_en": "ESA (Eastern and Southern Africa)",
       "zone": "ACP",
@@ -838,21 +2525,65 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_ESA": "Oorsprongsverklaring met REX-nummer verplicht boven 6.000 EUR",
-        "ZW_to_EU": "REX-systeem vanaf 1/7/2021",
-        "MG_to_EU": "REX-systeem vanaf 1/1/2023",
-        "SC_to_EU": "REX-systeem vanaf 1/7/2023"
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Tussentijdse Overeenkomst OZA-EG PB L 111 24/4/2012",
+        "Besluit Nr. 1/2020 EPO-comité [2020/425]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Tussentijdse Overeenkomst OZA-EG PB L 111 24/4/2012", "Besluit Nr. 1/2020 EPO-comité [2020/425]"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          },
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "note": "Per land: ZW vanaf 1/7/2021, MG vanaf 1/1/2023, SC vanaf 1/7/2023"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "SADC",
-      "country_iso": ["BW", "LS", "MZ", "ZA", "NA", "SZ"],
+      "country_iso": [
+        "BW",
+        "LS",
+        "MZ",
+        "ZA",
+        "NA",
+        "SZ"
+      ],
       "country_name_nl": "SADC-EPO (Botswana, Lesotho, Mozambique, Zuid-Afrika, Namibië, Eswatini)",
       "country_name_en": "SADC-EPO States",
       "zone": "ACP",
@@ -860,12 +2591,55 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["EPA EU-SADC PB L 250 16/9/2016"],
-      "notes": ["Nieuwe cumulatiemogelijkheden vanaf 1/4/2022; uitgebreid 1/6/2023"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "EPA EU-SADC PB L 250 16/9/2016"
+      ],
+      "notes": [
+        "Nieuwe cumulatiemogelijkheden vanaf 1/4/2022; uitgebreid 1/6/2023"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "CM",
@@ -876,17 +2650,56 @@
       "subzone": "CEMAC",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2014-08-04",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION", "EUR1_CMR"],
-      "proof_modalities": {
-        "EU_to_CM": "EUR.1-CMR of oorsprongsverklaring (max 6.000 EUR / toegelaten exporteur)",
-        "CM_to_EU": "Volgens MAR-ACS"
+      "cumulation": [
+        "bilateral_no_cumulation_eu_export"
+      ],
+      "in_force_since": "2014-08-04",
+      "legal_basis": [
+        "Tijdelijke EPA EU-Centraal-Afrika PB L 57 28/2/2009",
+        "DECREE N° 2016/367 (Kameroens recht)"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1_CMR",
+            "name": "EUR.1-CMR (Kameroense variant)",
+            "note": "Kameroense variant op EUR.1"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": [
+          "Geen cumulatie bij EU-export naar Kameroen"
+        ]
       },
-      "validity_months": 10,
-      "cumulation": ["bilateral_no_cumulation_eu_export"],
-      "retroactive_years": 2,
-      "legal_basis": ["Tijdelijke EPA EU-Centraal-Afrika PB L 57 28/2/2009", "DECREE N° 2016/367 (Kameroens recht)"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865",
+            "note": "Volgens MAR-ACS"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "GH",
@@ -897,22 +2710,48 @@
       "subzone": "WEST_AFRICA",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2016-12-15",
       "drawback_allowed": true,
-      "proof_types": ["INVOICE_DECLARATION", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_GH": "Oorsprongsverklaring; REX-nummer verplicht boven 6.000 EUR",
-        "GH_to_EU": "Vanaf 20/8/2023: oorsprongsverklaring met Ghanees registratienummer (NIET REX) voor geregistreerde exporteur"
-      },
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit (EU) 2016/1850 PB L 287 21/10/2016", "Protocol nr. 1 EPO-Comité Besluit Nr. 1/2020 [2020/1526]"],
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "in_force_since": "2016-12-15",
+      "legal_basis": [
+        "Besluit (EU) 2016/1850 PB L 287 21/10/2016",
+        "Protocol nr. 1 EPO-Comité Besluit Nr. 1/2020 [2020/1526]"
+      ],
       "notes": [
         "EUR.1's en oorsprongsverklaringen met toegelaten exporteur-nummer NIET aanvaard vanaf 20/8/2023",
         "Ghanese REX-nummers (GHREX...) NIET gebruiken — Ghana is geen SAP-land",
         "Cumulatie vanaf 1/2/2022 met andere ACS, LGO en West-Afrikaanse SAP-landen"
-      ]
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "note": "Vanaf 20/8/2023: Ghanees registratienummer (GEEN REX). EUR.1's en factuurverklaringen NIET meer aanvaard."
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "CI",
@@ -924,15 +2763,44 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["INVOICE_DECLARATION", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_CI": "Oorsprongsverklaring; REX-nummer verplicht boven 6.000 EUR",
-        "CI_to_EU": "Vanaf 2/12/2022: oorsprongsverklaring; REX-nummer verplicht boven 6.000 EUR"
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "legal_basis": [
+        "Besluit Nr. 2/2019 EPO-comité Ivoorkust [2020/195]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit Nr. 2/2019 EPO-comité Ivoorkust [2020/195]"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "note": "REX-nummer verplicht boven 6.000 EUR (sinds 2/12/2022)"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "KR",
@@ -943,14 +2811,54 @@
       "subzone": "KOREA",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2015-12-13",
       "drawback_allowed": true,
       "drawback_note": "Speciale regeling - artikel 14 Protocol",
-      "proof_types": ["INVOICE_DECLARATION"],
-      "validity_months": 12,
-      "cumulation": ["bilateral"],
-      "retroactive_years": 2,
-      "legal_basis": ["Vrijhandelsovereenkomst EU-Korea PB L 127 14/5/2011"]
+      "cumulation": [
+        "bilateral"
+      ],
+      "in_force_since": "2015-12-13",
+      "legal_basis": [
+        "Vrijhandelsovereenkomst EU-Korea PB L 127 14/5/2011"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "JP",
@@ -961,17 +2869,48 @@
       "subzone": "JAPAN",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2019-02-01",
       "drawback_allowed": true,
-      "proof_types": ["IMPORTERS_KNOWLEDGE", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_JP": "Attest van oorsprong met REX-nummer verplicht boven 6.000 EUR",
-        "JP_to_EU": "Attest van oorsprong met Japans Corporate Number"
+      "cumulation": [
+        "bilateral",
+        "full"
+      ],
+      "in_force_since": "2019-02-01",
+      "legal_basis": [
+        "EPA EU-Japan PB L 330 27/12/2018",
+        "Circulaire 2020/C/152 Fisconet"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "full"],
-      "retroactive_years": 2,
-      "legal_basis": ["EPA EU-Japan PB L 330 27/12/2018", "Circulaire 2020/C/152 Fisconet"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "note": "Japans Corporate Number"
+          },
+          {
+            "id": "IMPORTERS_KNOWLEDGE",
+            "name": "Aan de importeur bekende informatie (Importer's Knowledge)",
+            "note": "Mag ipv attest"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "SG",
@@ -982,18 +2921,45 @@
       "subzone": "SINGAPORE",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2019-11-21",
       "drawback_allowed": false,
-      "proof_types": ["STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_SG": "Attest van oorsprong; REX-nummer verplicht boven 6.000 EUR (sinds 1/1/2023)",
-        "SG_to_EU": "Attest van oorsprong met Unique Entity Number, ongeacht waarde"
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full"
+      ],
+      "in_force_since": "2019-11-21",
+      "legal_basis": [
+        "Besluit (EU) 2019/1875 PB L 294 14/11/2019",
+        "Besluit Nr. 01/2022 Douanecomité [2023/202]"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR (sinds 1/1/2023)"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "diagonal", "full"],
-      "retroactive_years_eu_import": 2,
-      "retroactive_years_sg_import": 1,
-      "legal_basis": ["Besluit (EU) 2019/1875 PB L 294 14/11/2019", "Besluit Nr. 01/2022 Douanecomité [2023/202]"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "requires_above_threshold": "local_exporter_id",
+            "note": "Unique Entity Number, ongeacht waarde"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": null,
+        "notes": []
+      }
     },
     {
       "id": "VN",
@@ -1004,18 +2970,51 @@
       "subzone": "VIETNAM",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2020-08-01",
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_VN": "Attest van oorsprong; REX-nummer verplicht boven 6.000 EUR",
-        "VN_to_EU": "EUR.1 of oorsprongsverklaring (≤ 6.000 EUR). GEEN SAP meer sinds 1/1/2023"
+      "cumulation": [
+        "bilateral",
+        "diagonal"
+      ],
+      "in_force_since": "2020-08-01",
+      "legal_basis": [
+        "Besluit (EU) 2020/753 PB L 186 12/6/2020"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "diagonal"],
-      "retroactive_years_eu_import": 2,
-      "retroactive_days_vn_import": 30,
-      "legal_basis": ["Besluit (EU) 2020/753 PB L 186 12/6/2020"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": null,
+        "notes": [
+          "Vietnam zit niet meer in SAP/GSP sinds 1/1/2023"
+        ]
+      }
     },
     {
       "id": "NZ",
@@ -1026,21 +3025,64 @@
       "subzone": "NZ",
       "agreement_type": "reciprocal",
       "is_customs_union": false,
-      "in_force_since": "2024-05-01",
       "drawback_allowed": true,
-      "proof_types": ["IMPORTERS_KNOWLEDGE", "STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "EU_to_NZ": "Attest van oorsprong met REX-nummer",
-        "NZ_to_EU": "Attest van oorsprong met Customs Client Code (NZ-formaat 8 cijfers + 1 letter, bv. 12345678A)"
+      "cumulation": [
+        "bilateral",
+        "full"
+      ],
+      "in_force_since": "2024-05-01",
+      "legal_basis": [
+        "Vrijhandelsovereenkomst EU-Nieuw-Zeeland PB L 2024/866 25/3/2024"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-nummer verplicht boven 6.000 EUR"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 3,
+        "notes": []
       },
-      "validity_months": 12,
-      "cumulation": ["bilateral", "full"],
-      "retroactive_years": 3,
-      "legal_basis": ["Vrijhandelsovereenkomst EU-Nieuw-Zeeland PB L 2024/866 25/3/2024"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_LOCAL",
+            "name": "Attest van oorsprong (met lokaal registratienummer)",
+            "requires_above_threshold": "local_exporter_id",
+            "note": "NZ Customs Client Code (8 cijfers + 1 letter, bv. 12345678A)"
+          },
+          {
+            "id": "IMPORTERS_KNOWLEDGE",
+            "name": "Aan de importeur bekende informatie (Importer's Knowledge)",
+            "note": "Mag ipv attest"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 3,
+        "notes": []
+      }
     },
     {
       "id": "OCT",
-      "country_iso": ["GL", "NC", "PF", "TF", "WF", "BL", "PM", "AW", "BQ", "CW", "SX"],
+      "country_iso": [
+        "GL",
+        "NC",
+        "PF",
+        "TF",
+        "WF",
+        "BL",
+        "PM",
+        "AW",
+        "BQ",
+        "CW",
+        "SX"
+      ],
       "country_name_nl": "LGO (Landen en Gebieden Overzee)",
       "country_name_en": "OCT (Overseas Countries and Territories)",
       "zone": "OTHER",
@@ -1048,20 +3090,48 @@
       "agreement_type": "non_reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["STATEMENT_OF_ORIGIN_REX"],
-      "proof_modalities": {
-        "any": "Attest van oorsprong (REX); REX-registratie verplicht boven 10.000 EUR"
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "full",
+        "extended"
+      ],
+      "legal_basis": [
+        "Besluit (EU) 2021/1764 PB L 355 7/10/2021"
+      ],
+      "notes": [
+        "Britse LGO's NIET meer sinds 1/1/2021"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 10000,
+            "requires_above_threshold": "rex_number",
+            "note": "REX-registratie verplicht boven 10.000 EUR"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
       },
-      "threshold_eur": 10000,
-      "validity_months": 10,
-      "cumulation": ["bilateral", "diagonal", "full", "extended"],
-      "retroactive_years": 2,
-      "legal_basis": ["Besluit (EU) 2021/1764 PB L 355 7/10/2021"],
-      "notes": ["Britse LGO's NIET meer sinds 1/1/2021"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "threshold_eur": 10000,
+            "requires_above_threshold": "rex_number"
+          }
+        ],
+        "validity_months": 10,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "GSP",
-      "country_iso": null,
       "country_name_nl": "Stelsel van Algemene Preferenties (SAP/GSP)",
       "country_name_en": "Generalised Scheme of Preferences (GSP)",
       "zone": "OTHER",
@@ -1069,21 +3139,47 @@
       "agreement_type": "non_reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["STATEMENT_OF_ORIGIN_REX"],
-      "validity_months": 12,
-      "cumulation": ["bilateral", "diagonal", "regional", "extended"],
-      "retroactive_years": 2,
-      "legal_basis": ["GedVo (EU) 2015/2446 art. 37-70", "UitvVo (EU) 2015/2447 art. 60-126"],
-      "gsp_categories": {
-        "Standard_GSP": ["CG", "CK", "IN", "ID", "KE", "FM", "NG", "NU", "SY", "TJ", "VU"],
-        "GSP_plus": ["BO", "CV", "KG", "MN", "PK", "PH", "LK", "UZ"],
-        "EBA": ["AF", "AO", "BD", "BJ", "BT", "BF", "BI", "KH", "CF", "KM", "CD", "DJ", "ER", "ET", "GM", "GN", "GW", "HT", "KI", "LA", "LS", "LR", "MG", "MW", "ML", "MR", "MM", "NP", "NE", "RW", "ST", "SN", "SL", "SB", "SO", "SD", "SS", "TZ", "TL", "TG", "TV", "YE", "ZM", "TD"]
+      "cumulation": [
+        "bilateral",
+        "diagonal",
+        "regional",
+        "extended"
+      ],
+      "legal_basis": [
+        "GedVo (EU) 2015/2446 art. 37-70",
+        "UitvVo (EU) 2015/2447 art. 60-126"
+      ],
+      "notes": [
+        "Syrië: SAP-land maar REX niet geïmplementeerd → preferenties niet beschikbaar"
+      ],
+      "export": {
+        "proof_types": [],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": [
+          "SAP/GSP is een EENZIJDIGE preferentie: enkel invoer in EU. Voor EU-uitvoer naar deze landen gelden geen SAP-preferenties."
+        ]
       },
-      "notes": ["Syrië: SAP-land maar REX niet geïmplementeerd → preferenties niet beschikbaar"]
+      "import": {
+        "proof_types": [
+          {
+            "id": "STATEMENT_OF_ORIGIN_REX",
+            "name": "Attest van oorsprong (met REX-nummer)",
+            "taric_code": "U045",
+            "requires_above_threshold": "rex_number"
+          }
+        ],
+        "validity_months": 12,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "CEUTA_MELILLA",
-      "country_iso": ["XC", "XL"],
+      "country_iso": [
+        "XC",
+        "XL"
+      ],
       "country_name_nl": "Ceuta en Melilla",
       "country_name_en": "Ceuta and Melilla",
       "zone": "OTHER",
@@ -1091,11 +3187,52 @@
       "agreement_type": "reciprocal",
       "is_customs_union": false,
       "drawback_allowed": false,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 4,
-      "cumulation": ["bilateral", "diagonal"],
-      "retroactive_years": 2,
-      "legal_basis": ["Verordening (EG) nr. 82/2001 PB L 20 20/1/2001"]
+      "cumulation": [
+        "bilateral",
+        "diagonal"
+      ],
+      "legal_basis": [
+        "Verordening (EG) nr. 82/2001 PB L 20 20/1/2001"
+      ],
+      "notes": [],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      }
     },
     {
       "id": "SM",
@@ -1106,11 +3243,39 @@
       "subzone": "DOUANE_UNIE",
       "agreement_type": "customs_union",
       "is_customs_union": true,
-      "drawback_allowed": null,
-      "proof_types": ["T2_T2L"],
+      "cumulation": [],
       "scope": "Alle hoofdstukken EXCL EGKS-goederen",
-      "legal_basis": ["Overeenkomst EEG-San Marino 16/12/1991", "Besluit Nr. 4/92 PB L 42 19/2/1993"],
-      "notes": ["Geen oorsprongsbewijs vereist; vrij verkeer", "Communautair douanevervoer met T2/T2L documenten"]
+      "legal_basis": [
+        "Overeenkomst EEG-San Marino 16/12/1991",
+        "Besluit Nr. 4/92 PB L 42 19/2/1993"
+      ],
+      "notes": [
+        "Geen oorsprongsbewijs vereist; vrij verkeer",
+        "Communautair douanevervoer met T2/T2L documenten"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "T2_T2L",
+            "name": "T2 / T2L (vrij verkeer binnen douane-unie)",
+            "note": "Geen oorsprongsbewijs vereist; vrij verkeer"
+          }
+        ],
+        "validity_months": null,
+        "retroactive_years": null,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "T2_T2L",
+            "name": "T2 / T2L (vrij verkeer binnen douane-unie)"
+          }
+        ],
+        "validity_months": null,
+        "retroactive_years": null,
+        "notes": []
+      }
     },
     {
       "id": "XK_AUTONOMOUS",
@@ -1122,16 +3287,54 @@
       "agreement_type": "non_reciprocal",
       "is_customs_union": false,
       "drawback_allowed": true,
-      "proof_types": ["EUR1", "INVOICE_DECLARATION"],
-      "validity_months": 4,
-      "cumulation": ["bilateral"],
-      "retroactive_years": 2,
-      "legal_basis": ["Verordening (EU) 2015/2423 PB L 341 24/12/2015", "Verordening (EU) 2020/2172 PB L 432 21/12/2020"],
-      "notes": ["Loopt parallel met PEM-Conventie"]
+      "cumulation": [
+        "bilateral"
+      ],
+      "legal_basis": [
+        "Verordening (EU) 2015/2423 PB L 341 24/12/2015",
+        "Verordening (EU) 2020/2172 PB L 432 21/12/2020"
+      ],
+      "notes": [
+        "Loopt parallel met PEM-Conventie"
+      ],
+      "export": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      },
+      "import": {
+        "proof_types": [
+          {
+            "id": "EUR1",
+            "name": "Certificaat inzake goederenverkeer EUR.1",
+            "taric_code": "N865"
+          },
+          {
+            "id": "INVOICE_DECLARATION",
+            "name": "Oorsprongsverklaring op factuur of ander handelsdocument",
+            "taric_code": "N864",
+            "threshold_eur": 6000,
+            "requires_above_threshold": "authorised_exporter"
+          }
+        ],
+        "validity_months": 4,
+        "retroactive_years": 2,
+        "notes": []
+      }
     }
-  ],
-  "no_preferential_agreement_examples": {
-    "description": "Voorbeelden van landen ZONDER preferentiële overeenkomst met de EU — preferentiële oorsprongsbewijzen zijn hier NIET van toepassing. Voor export naar deze bestemmingen is enkel een niet-preferentieel certificaat van oorsprong (CvO) mogelijk via de Kamer van Koophandel.",
-    "countries": ["US", "CN", "RU", "BY", "AU", "IN", "BR", "AE", "SA", "TH", "MY", "ID", "PH", "AR_NON_MERCOSUR", "TW", "HK"]
-  }
+  ]
 }

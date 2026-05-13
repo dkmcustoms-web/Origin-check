@@ -1,4 +1,4 @@
-"""Sanity checks voor OriginValidator — laat alle hoofd-scenario's zien."""
+"""Sanity checks v2 — toont alle hoofd-scenario's met richting-onderscheid."""
 
 from dkm_origin import OriginValidator
 
@@ -7,106 +7,105 @@ v = OriginValidator()
 
 def show(title, result):
     print(f"\n--- {title} ---")
-    print(f"  valid={result.valid}  severity={result.severity.value}  code={result.code}")
+    print(f"  {result.severity.value:8s}  {result.code}")
     print(f"  → {result.message}")
 
 
-# 1. Het scenario uit Luc's vraag: REX naar USA
-show(
-    "REX C100 → USA (zoals in Luc's voorbeeld)",
-    v.validate_proof(destination_country="US", proof_type="C100", value_eur=15000),
-)
+# ═══════════════════════════════════════════════════════════════
+# DE ORIGINELE BUG: Canada toonde N864 voor export
+# ═══════════════════════════════════════════════════════════════
 
-# 2. REX voor Japan boven 6.000 EUR met REX-nummer
 show(
-    "REX → Japan, 15.000 EUR, met REX-nr",
+    "[BUG-FIX] EXPORT EU→Canada met factuurverklaring (moet falen)",
     v.validate_proof(
-        destination_country="JP",
-        proof_type="STATEMENT_OF_ORIGIN_REX",
-        value_eur=15000,
-        rex_number="BEREXBE123456789",
+        destination_country="Canada", proof_type="INVOICE_DECLARATION",
+        direction="export", value_eur=15000, authorised_exporter=True,
     ),
 )
 
-# 3. REX voor Japan zonder REX-nummer
 show(
-    "REX → Japan, 15.000 EUR, ZONDER REX-nr",
+    "[BUG-FIX] EXPORT EU→Canada met N864 (TARIC, moet falen)",
     v.validate_proof(
-        destination_country="JP",
-        proof_type="STATEMENT_OF_ORIGIN_REX",
-        value_eur=15000,
+        destination_country="Canada", proof_type="N864",
+        direction="export", value_eur=15000, authorised_exporter=True,
     ),
 )
 
-# 4. EUR.1 voor Zwitserland - klassieke happy path
 show(
-    "EUR.1 → Zwitserland",
-    v.validate_proof(destination_country="CH", proof_type="EUR1"),
-)
-
-# 5. Oorsprongsverklaring op factuur > 6.000 EUR zonder vergunning
-show(
-    "Factuurverklaring → Noorwegen, 12.000 EUR, geen toegelaten exporteur",
+    "[OK] EXPORT EU→Canada met REX-attest + REX-nr",
     v.validate_proof(
-        destination_country="NO",
-        proof_type="INVOICE_DECLARATION",
-        value_eur=12000,
-        authorised_exporter=False,
+        destination_country="Canada", proof_type="STATEMENT_OF_ORIGIN_REX",
+        direction="export", value_eur=15000, rex_number="BEREXBE0123456789",
     ),
 )
 
-# 6. Idem maar mét toegelaten exporteur
 show(
-    "Factuurverklaring → Noorwegen, 12.000 EUR, toegelaten exporteur",
+    "[OK] IMPORT Canada→EU met lokaal exporteur-nr",
     v.validate_proof(
-        destination_country="NO",
-        proof_type="INVOICE_DECLARATION",
-        value_eur=12000,
-        authorised_exporter=True,
+        destination_country="Canada", proof_type="STATEMENT_OF_ORIGIN_LOCAL",
+        direction="import", value_eur=15000, local_exporter_id="123456789RM0001",
     ),
 )
 
-# 7. EUR.1 voor Turkije zonder specificatie — meerdere overeenkomsten
+# Klassieke PEM symmetrie
 show(
-    "EUR.1 → Turkije zonder agreement_id",
-    v.validate_proof(destination_country="TR", proof_type="EUR1"),
+    "[OK] EXPORT EU→Zwitserland met EUR.1",
+    v.validate_proof(destination_country="Zwitserland", proof_type="EUR1", direction="export"),
+)
+show(
+    "[OK] IMPORT Zwitserland→EU met EUR.1",
+    v.validate_proof(destination_country="Zwitserland", proof_type="EUR1", direction="import"),
 )
 
-# 8. A.TR voor Turkije douane-unie
+# Importer's Knowledge
 show(
-    "A.TR → Turkije (TR_CU)",
-    v.validate_proof(destination_country="TR", proof_type="ATR", agreement_id="TR_CU"),
+    "[OK] IMPORT Japan→EU met Importer's Knowledge",
+    v.validate_proof(destination_country="Japan", proof_type="IMPORTERS_KNOWLEDGE", direction="import"),
+)
+show(
+    "[ERR] EXPORT EU→Zwitserland met Importer's Knowledge (mag niet bij PEM)",
+    v.validate_proof(destination_country="Zwitserland", proof_type="IMPORTERS_KNOWLEDGE", direction="export"),
 )
 
-# 9. EUR.1 voor Turkije EGKS - oké
+# Drempel-checks
 show(
-    "EUR.1 → Turkije EGKS (TR_EGKS)",
-    v.validate_proof(destination_country="TR", proof_type="EUR1", agreement_id="TR_EGKS"),
-)
-
-# 10. Ghanese REX-nummer (mag niet)
-show(
-    "REX → Ghana met GHREX-nummer",
+    "[ERR] EXPORT EU→Noorwegen factuurverklaring >6k zonder vergunning",
     v.validate_proof(
-        destination_country="GH",
-        proof_type="STATEMENT_OF_ORIGIN_REX",
-        value_eur=10000,
-        rex_number="GHREX123",
+        destination_country="Noorwegen", proof_type="INVOICE_DECLARATION",
+        direction="export", value_eur=12000, authorised_exporter=False,
+    ),
+)
+show(
+    "[OK] EXPORT EU→Noorwegen factuurverklaring >6k MET vergunning",
+    v.validate_proof(
+        destination_country="Noorwegen", proof_type="INVOICE_DECLARATION",
+        direction="export", value_eur=12000, authorised_exporter=True,
+    ),
+)
+show(
+    "[ERR] EXPORT EU→Japan REX-attest >6k zonder REX-nr",
+    v.validate_proof(
+        destination_country="Japan", proof_type="STATEMENT_OF_ORIGIN_REX",
+        direction="export", value_eur=15000,
     ),
 )
 
-# 11. Israel met bijzondere vermelding Y864 waarschuwing
+# Land-resolutie
 show(
-    "EUR.1 → Israël (toont special_marking warning)",
-    v.validate_proof(destination_country="IL", proof_type="EUR1"),
+    "[ERR] EU-lidstaat (Frankrijk)",
+    v.validate_proof(destination_country="Frankrijk", proof_type="EUR1", direction="export"),
+)
+show(
+    "[ERR] Geen akkoord (USA / VS)",
+    v.validate_proof(destination_country="VS", proof_type="EUR1", direction="export"),
 )
 
-# 12. Summary voor bestemming
-print("\n--- Summary Japan ---")
-print(v.summarise_for_destination("JP"))
+# Summaries
+print("\n\n═══ SUMMARY Canada (beide richtingen) ═══")
+print(v.summarise_for_destination("Canada"))
 
-print("\n--- Summary USA ---")
-print(v.summarise_for_destination("US"))
+print("\n═══ SUMMARY Japan (beide richtingen) ═══")
+print(v.summarise_for_destination("Japan"))
 
-print("\n--- Summary Turkije ---")
-print(v.summarise_for_destination("TR"))
+print("\n═══ SUMMARY Zwitserland (alleen export) ═══")
+print(v.summarise_for_destination("Zwitserland", direction="export"))

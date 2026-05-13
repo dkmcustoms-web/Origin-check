@@ -1,31 +1,31 @@
 """
-DKM Origin Validator
-====================
+DKM Origin Validator (v2)
+=========================
 
-Validation library voor preferentiële oorsprong in export-aangiften.
+Validation library voor preferentiële oorsprong in export- én import-aangiften.
 
 Gebouwd op basis van het AADA-overzicht "OEO – D.D 15.316 – Overzicht van
 Preferentiële Overeenkomsten en Douane-Unies" (bijwerking 30 april 2026).
 
-Use cases:
-    - Q&A over oorsprongsregels per bestemmingsland
-    - Validatie van oorsprongsbewijzen in export-aangiften
-      (bv. is REX-nummer aanvaardbaar voor bestemming X?)
-    - Integratie in dkm-customs-utils en export declaration check
+v2-wijzigingen t.o.v. v1:
+- Datamodel splitst per akkoord een `export` (EU → bestemmingsland) en
+  `import` (bestemmingsland → EU) sectie. Voor moderne FTAs (CETA, JP-EPA,
+  EU-SG, EU-VN, EU-NZ, EU-Chili, TCA, Mercosur) verschillen die.
+- `validate_proof()` heeft nu een `direction` parameter ("export" of "import").
+- TARIC-codes zijn per akkoord+richting, niet meer globaal. Enkel ingevuld
+  waar met zekerheid bekend; anders enkel naam.
 
 Voorbeeld:
     from dkm_origin import OriginValidator
 
     v = OriginValidator()
     result = v.validate_proof(
-        destination_country="US",
-        proof_type="STATEMENT_OF_ORIGIN_REX",
+        destination_country="Canada",
+        proof_type="INVOICE_DECLARATION",
+        direction="export",
         value_eur=15000,
     )
-    if not result.valid:
-        print(result.message)
-        # → "Geen preferentiële overeenkomst tussen EU en US (Verenigde Staten).
-        #    REX-nummer is hier niet van toepassing."
+    # → PROOF_NOT_ACCEPTED: voor EU→CA is enkel REX-attest geldig
 """
 
 from __future__ import annotations
@@ -34,25 +34,24 @@ import json
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any
-
+from typing import Any, Literal
 
 from .countries import resolve_country, display_name, is_eu_member, CountryMatch
 
 
 DATA_PATH = Path(__file__).parent.parent / "data" / "preferential_agreements.json"
 
+Direction = Literal["export", "import"]
+
 # Mapping van TARIC document codes naar interne proof type IDs.
-# Te gebruiken om vanuit een EUCDM-aangifte direct te valideren.
+# Enkel codes die we met zekerheid kennen.
 TARIC_CODE_TO_PROOF = {
     "N865": "EUR1",
     "N954": "EUR_MED",
     "N864": "INVOICE_DECLARATION",
     "N953": "INVOICE_DECLARATION_EUR_MED",
-    "U165": "STATEMENT_OF_ORIGIN_REX",
     "N018": "ATR",
-    # Alias - some systems use C100 historically for EUR.1
-    "C100": "EUR1",
+    "U045": "STATEMENT_OF_ORIGIN_REX",
 }
 
 
@@ -71,6 +70,7 @@ class ValidationResult:
     code: str
     message: str
     destination: str | None = None
+    direction: Direction | None = None
     proof_type: str | None = None
     agreement_id: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
@@ -82,6 +82,7 @@ class ValidationResult:
             "code": self.code,
             "message": self.message,
             "destination": self.destination,
+            "direction": self.direction,
             "proof_type": self.proof_type,
             "agreement_id": self.agreement_id,
             "details": self.details,
@@ -89,11 +90,7 @@ class ValidationResult:
 
 
 class OriginValidator:
-    """Validator voor preferentiële oorsprongsbewijzen.
-
-    Initialiseert in O(1) door data eenmalig in te laden uit JSON.
-    Thread-safe voor lezen.
-    """
+    """Validator voor preferentiële oorsprongsbewijzen, schema v2."""
 
     def __init__(self, data_path: Path | str | None = None) -> None:
         path = Path(data_path) if data_path else DATA_PATH
@@ -102,7 +99,6 @@ class OriginValidator:
         self._build_indexes()
 
     def _build_indexes(self) -> None:
-        """Bouwt lookup-indexen voor snelle queries."""
         self.agreements_by_id: dict[str, dict] = {}
         self.agreements_by_country: dict[str, list[dict]] = {}
 
@@ -115,25 +111,24 @@ class OriginValidator:
             for code in iso_codes:
                 self.agreements_by_country.setdefault(code.upper(), []).append(agr)
 
-        # GSP countries (special — flat in metadata)
+        # GSP countries (special — bewaar de lijst voor lookups)
         gsp = self.agreements_by_id.get("GSP")
         if gsp:
-            for category, codes in gsp.get("gsp_categories", {}).items():
-                for code in codes:
-                    if code.upper() not in self.agreements_by_country:
-                        self.agreements_by_country.setdefault(code.upper(), []).append(gsp)
+            categories = gsp.get("gsp_categories")
+            if categories:
+                for category, codes in categories.items():
+                    for code in codes:
+                        if code.upper() not in self.agreements_by_country:
+                            self.agreements_by_country.setdefault(code.upper(), []).append(gsp)
 
-        self.proof_types: dict[str, dict] = self._data["proof_types"]
+        self.proof_type_registry: dict[str, dict] = self._data.get("proof_type_registry", {})
 
     # -------------------------------------------------------------------
     # Lookup API
     # -------------------------------------------------------------------
 
     def get_agreements_for(self, country: str) -> list[dict]:
-        """Alle overeenkomsten van toepassing voor een bestemmingsland.
-
-        Accepteert ISO-2, ISO-3, NL/EN naam of alias.
-        """
+        """Alle overeenkomsten van toepassing voor een bestemmingsland."""
         match = resolve_country(country)
         if not match.matched:
             return []
@@ -146,12 +141,15 @@ class OriginValidator:
         return sorted(self.agreements_by_country.keys())
 
     def get_proof_type_info(self, proof_type: str) -> dict | None:
-        """Info over een oorsprongsbewijs-type (zoals EUR.1 of REX-attest)."""
-        return self.proof_types.get(proof_type)
+        return self.proof_type_registry.get(proof_type)
 
     def resolve_proof_from_taric(self, taric_code: str) -> str | None:
-        """Vertaalt een TARIC document-code naar een interne proof type."""
         return TARIC_CODE_TO_PROOF.get(taric_code.upper())
+
+    def get_proofs_for_direction(self, agreement: dict, direction: Direction) -> list[dict]:
+        """Geeft de lijst van toegestane bewijs-types voor een richting."""
+        section = agreement.get(direction, {})
+        return section.get("proof_types", [])
 
     # -------------------------------------------------------------------
     # Validation API
@@ -161,266 +159,259 @@ class OriginValidator:
         self,
         destination_country: str,
         proof_type: str,
+        direction: Direction = "export",
         value_eur: float | None = None,
         agreement_id: str | None = None,
         authorised_exporter: bool = False,
         rex_number: str | None = None,
+        local_exporter_id: str | None = None,
     ) -> ValidationResult:
-        """Valideert of een oorsprongsbewijs aanvaardbaar is voor de bestemming.
+        """Valideert of een oorsprongsbewijs aanvaardbaar is.
 
         Args:
-            destination_country: ISO-2 code OF landnaam OF alias
-                                 (bv. "US", "USA", "Verenigde Staten", "VS")
+            destination_country: ISO-2 / ISO-3 / NL-naam / EN-naam / alias
             proof_type: interne proof type key OF TARIC document code
-            value_eur: zending-waarde in EUR (voor REX-drempel / 6.000 EUR check)
-            agreement_id: optioneel — kies specifieke overeenkomst bij meerdere
-                          (bv. TR_EGKS vs TR_AGRI vs TR_CU)
-            authorised_exporter: heeft de exporteur een toegelaten-exporteur vergunning?
-            rex_number: indien proof_type een REX-variant is, het opgegeven REX-nummer
-
-        Returns:
-            ValidationResult met severity OK/WARNING/ERROR + uitleg
+            direction: "export" (EU → land) of "import" (land → EU)
+            value_eur: zending-waarde voor drempel-checks
+            agreement_id: optioneel — bij meerdere akkoorden voor één land
+            authorised_exporter: heeft de exporteur een vergunning?
+            rex_number: REX-registratienummer (indien aanwezig)
+            local_exporter_id: lokaal exporteur-nummer (Canadees BN, JP Corporate Nr, etc.)
         """
-        # Stap 0: resolve het bestemmingsland (accepteert ISO-2, ISO-3, NL/EN naam, aliassen)
+        if direction not in ("export", "import"):
+            return ValidationResult(
+                valid=False, severity=Severity.ERROR, code="INVALID_DIRECTION",
+                message=f"direction moet 'export' of 'import' zijn, niet {direction!r}",
+                direction=direction,
+            )
+
+        # Stap 0: land resolven
         match = resolve_country(destination_country)
         if not match.matched:
-            suggestion_text = ""
-            if match.suggestions:
-                suggestion_text = f" Bedoelde je: {', '.join(match.suggestions)}?"
+            sugg = f" Bedoelde je: {', '.join(match.suggestions)}?" if match.suggestions else ""
             return ValidationResult(
-                valid=False,
-                severity=Severity.ERROR,
-                code="UNKNOWN_COUNTRY",
-                message=f"Bestemmingsland {destination_country!r} niet herkend.{suggestion_text}",
-                destination=destination_country,
-                proof_type=proof_type,
+                valid=False, severity=Severity.ERROR, code="UNKNOWN_COUNTRY",
+                message=f"Bestemmingsland {destination_country!r} niet herkend.{sugg}",
+                destination=destination_country, direction=direction, proof_type=proof_type,
                 details={"suggestions": match.suggestions},
             )
         dest = match.iso2
 
-        # Stap 0b: EU-lidstaat? Dan is een preferentieel oorsprongsbewijs niet relevant.
         if is_eu_member(dest):
             return ValidationResult(
-                valid=False,
-                severity=Severity.ERROR,
-                code="EU_INTRA",
+                valid=False, severity=Severity.ERROR, code="EU_INTRA",
                 message=(
                     f"{match.name_nl} ({dest}) is een EU-lidstaat — dit is intra-Unie "
-                    f"verkeer en geen export. Preferentiële oorsprongsbewijzen zijn hier "
-                    f"niet van toepassing."
+                    f"verkeer. Preferentiële oorsprongsbewijzen zijn niet van toepassing."
                 ),
-                destination=dest,
-                proof_type=proof_type,
+                destination=dest, direction=direction, proof_type=proof_type,
             )
 
-        # Stap 1: vertaal eventuele TARIC code
+        # Stap 1: TARIC code → interne proof type
+        original_proof = proof_type
         if proof_type.upper() in TARIC_CODE_TO_PROOF:
             proof_type = TARIC_CODE_TO_PROOF[proof_type.upper()]
 
-        if proof_type not in self.proof_types:
+        if proof_type not in self.proof_type_registry:
             return ValidationResult(
-                valid=False,
-                severity=Severity.ERROR,
-                code="UNKNOWN_PROOF_TYPE",
-                message=f"Onbekend oorsprongsbewijs-type: {proof_type!r}",
-                destination=dest,
-                proof_type=proof_type,
+                valid=False, severity=Severity.ERROR, code="UNKNOWN_PROOF_TYPE",
+                message=f"Onbekend oorsprongsbewijs-type: {original_proof!r}",
+                destination=dest, direction=direction, proof_type=proof_type,
             )
 
-        # Stap 2: heeft de bestemming een preferentiële overeenkomst?
+        # Stap 2: heeft land een akkoord?
         agreements = self.agreements_by_country.get(dest, [])
         if not agreements:
             return ValidationResult(
-                valid=False,
-                severity=Severity.ERROR,
-                code="NO_AGREEMENT",
+                valid=False, severity=Severity.ERROR, code="NO_AGREEMENT",
                 message=(
                     f"Geen preferentiële overeenkomst tussen EU en {match.name_nl} ({dest}). "
                     f"Oorsprongsbewijs {proof_type!r} is hier niet van toepassing. "
                     f"Eventueel kan een niet-preferentieel certificaat van oorsprong "
-                    f"(KvK) nodig zijn voor de bestemming."
+                    f"(KvK) nodig zijn."
                 ),
-                destination=dest,
-                proof_type=proof_type,
+                destination=dest, direction=direction, proof_type=proof_type,
             )
 
-        # Stap 3: kies overeenkomst (bij meerdere)
+        # Stap 3: kies akkoord
         if agreement_id:
             chosen = self.agreements_by_id.get(agreement_id)
             if not chosen or chosen not in agreements:
                 return ValidationResult(
-                    valid=False,
-                    severity=Severity.ERROR,
-                    code="AGREEMENT_NOT_APPLICABLE",
+                    valid=False, severity=Severity.ERROR, code="AGREEMENT_NOT_APPLICABLE",
                     message=f"Overeenkomst {agreement_id!r} niet van toepassing voor {dest}",
-                    destination=dest,
+                    destination=dest, direction=direction,
                 )
         else:
-            # Filter: alleen overeenkomsten die het opgegeven proof_type accepteren
-            candidates = [a for a in agreements if proof_type in a.get("proof_types", [])]
+            candidates = [
+                a for a in agreements
+                if any(p["id"] == proof_type for p in self.get_proofs_for_direction(a, direction))
+            ]
             if not candidates:
-                # Geen overeenkomst accepteert dit proof - return PROOF_NOT_ACCEPTED
-                # via de generieke fallback hieronder
                 candidates = agreements
-
-            # Voorkeur: specifieke (single-country) overeenkomst boven regio-groep
             specific = [a for a in candidates if isinstance(a.get("country_iso"), str)]
             if len(specific) == 1:
                 chosen = specific[0]
             elif len(candidates) == 1:
                 chosen = candidates[0]
             else:
-                # Echt meerdere, gebruiker moet kiezen
                 return ValidationResult(
-                    valid=False,
-                    severity=Severity.WARNING,
-                    code="MULTIPLE_AGREEMENTS",
+                    valid=False, severity=Severity.WARNING, code="MULTIPLE_AGREEMENTS",
                     message=(
-                        f"Meerdere overeenkomsten gevonden voor {dest}: "
-                        f"{[a['id'] for a in candidates]}. "
-                        f"Specificeer agreement_id (bv. voor Turkije: TR_CU voor douane-unie, "
-                        f"TR_EGKS voor staalproducten, TR_AGRI voor landbouw)."
+                        f"Meerdere overeenkomsten voor {dest}: "
+                        f"{[a['id'] for a in candidates]}. Specificeer agreement_id."
                     ),
-                    destination=dest,
-                    proof_type=proof_type,
+                    destination=dest, direction=direction, proof_type=proof_type,
                     details={"agreements": [a["id"] for a in candidates]},
                 )
 
-        # Stap 4: is het opgegeven proof_type aanvaardbaar binnen die overeenkomst?
-        valid_proofs = chosen.get("proof_types", [])
-        if proof_type not in valid_proofs:
+        # Stap 4: is het bewijs aanvaard voor deze richting?
+        section_proofs = self.get_proofs_for_direction(chosen, direction)
+        if not section_proofs:
             return ValidationResult(
-                valid=False,
-                severity=Severity.ERROR,
-                code="PROOF_NOT_ACCEPTED",
+                valid=False, severity=Severity.ERROR, code="NO_PROOFS_FOR_DIRECTION",
                 message=(
-                    f"Oorsprongsbewijs {proof_type!r} is NIET aanvaard onder de "
-                    f"overeenkomst met {dest}. Aanvaardbare bewijzen: {valid_proofs}"
+                    f"Geen preferentiële oorsprongsbewijzen voorzien voor richting "
+                    f"{direction!r} onder akkoord {chosen['id']} ({chosen['country_name_nl']}). "
+                    f"Bijvoorbeeld GSP is eenzijdig (enkel import in EU)."
                 ),
-                destination=dest,
-                proof_type=proof_type,
-                agreement_id=chosen["id"],
-                details={"accepted_proof_types": valid_proofs},
+                destination=dest, direction=direction, agreement_id=chosen["id"],
             )
 
-        # Stap 5: drempel-waarde / REX / toegelaten exporteur checks
-        threshold = self.proof_types[proof_type].get("threshold_eur", 6000)
-        # OCT heeft eigen drempel
-        if chosen.get("threshold_eur"):
-            threshold = chosen["threshold_eur"]
+        matching = [p for p in section_proofs if p["id"] == proof_type]
+        if not matching:
+            accepted = [p["id"] for p in section_proofs]
+            return ValidationResult(
+                valid=False, severity=Severity.ERROR, code="PROOF_NOT_ACCEPTED",
+                message=(
+                    f"Bewijs {proof_type!r} is NIET aanvaard voor {direction} "
+                    f"onder akkoord {chosen['id']} ({chosen['country_name_nl']}). "
+                    f"Aanvaard: {accepted}"
+                ),
+                destination=dest, direction=direction, proof_type=proof_type,
+                agreement_id=chosen["id"],
+                details={"accepted_proof_types": accepted},
+            )
+        proof_def = matching[0]
 
-        if proof_type == "INVOICE_DECLARATION":
-            if value_eur is not None and value_eur > threshold and not authorised_exporter:
+        # Stap 5: drempel- en vereisten-check
+        threshold = proof_def.get("threshold_eur")
+        requires = proof_def.get("requires_above_threshold")
+
+        if value_eur is not None and threshold and value_eur > threshold:
+            if requires == "authorised_exporter" and not authorised_exporter:
                 return ValidationResult(
-                    valid=False,
-                    severity=Severity.ERROR,
-                    code="AUTHORISED_EXPORTER_REQUIRED",
+                    valid=False, severity=Severity.ERROR, code="AUTHORISED_EXPORTER_REQUIRED",
                     message=(
-                        f"Oorsprongsverklaring op factuur boven {threshold} EUR "
-                        f"vereist een vergunning toegelaten exporteur. "
-                        f"Zending-waarde: {value_eur} EUR."
+                        f"{proof_def['name']} boven {threshold} EUR vereist een vergunning "
+                        f"toegelaten exporteur. Zending: {value_eur} EUR."
                     ),
-                    destination=dest,
-                    proof_type=proof_type,
+                    destination=dest, direction=direction, proof_type=proof_type,
+                    agreement_id=chosen["id"],
+                )
+            if requires == "rex_number" and not rex_number:
+                return ValidationResult(
+                    valid=False, severity=Severity.ERROR, code="REX_REQUIRED",
+                    message=(
+                        f"{proof_def['name']} boven {threshold} EUR vereist een REX-nummer. "
+                        f"Zending: {value_eur} EUR."
+                    ),
+                    destination=dest, direction=direction, proof_type=proof_type,
+                    agreement_id=chosen["id"],
+                )
+            if requires == "local_exporter_id" and not local_exporter_id:
+                return ValidationResult(
+                    valid=False, severity=Severity.ERROR, code="LOCAL_EXPORTER_ID_REQUIRED",
+                    message=(
+                        f"{proof_def['name']} vereist een lokaal exporteur-nummer "
+                        f"(bv. {proof_def.get('note', 'lokaal registratienummer')})."
+                    ),
+                    destination=dest, direction=direction, proof_type=proof_type,
                     agreement_id=chosen["id"],
                 )
 
-        if proof_type == "STATEMENT_OF_ORIGIN_REX":
-            if value_eur is not None and value_eur > threshold and not rex_number:
-                return ValidationResult(
-                    valid=False,
-                    severity=Severity.ERROR,
-                    code="REX_REQUIRED",
-                    message=(
-                        f"Attest van oorsprong boven {threshold} EUR vereist een "
-                        f"REX-registratienummer (geregistreerd exporteurs-systeem). "
-                        f"Zending-waarde: {value_eur} EUR."
-                    ),
-                    destination=dest,
-                    proof_type=proof_type,
-                    agreement_id=chosen["id"],
-                )
-            # Speciale gevallen: GH wil GEEN REX van EU, SG/CL/NZ/CA hebben land-specifieke nrs
-            if chosen["id"] == "GH" and rex_number and rex_number.upper().startswith("GHREX"):
-                return ValidationResult(
-                    valid=False,
-                    severity=Severity.ERROR,
-                    code="WRONG_REX_FORMAT",
-                    message=(
-                        "Ghanese REX-nummers (GHREX...) mogen NIET gebruikt worden. "
-                        "Ghana is geen SAP-land; gebruik Ghanees registratienummer."
-                    ),
-                    destination=dest,
-                    proof_type=proof_type,
-                    agreement_id=chosen["id"],
-                )
+        # Speciale check: Ghanese REX-nummers (mogen NIET)
+        if chosen["id"] == "GH" and rex_number and rex_number.upper().startswith("GHREX"):
+            return ValidationResult(
+                valid=False, severity=Severity.ERROR, code="WRONG_REX_FORMAT",
+                message=(
+                    "Ghanese REX-nummers (GHREX...) zijn NIET toegestaan. "
+                    "Ghana is geen SAP-land; gebruik een Ghanees registratienummer."
+                ),
+                destination=dest, direction=direction, proof_type=proof_type,
+                agreement_id=chosen["id"],
+            )
 
-        # Stap 6: success — toon eventuele waarschuwingen / bijzonderheden
+        # Stap 6: success — toon waarschuwingen waar van toepassing
         warnings: list[str] = []
         if chosen.get("special_marking"):
-            warnings.append(f"Bijzondere vermelding vereist: {chosen['special_marking']}")
+            warnings.append(f"Bijzondere vermelding: {chosen['special_marking']}")
         if chosen.get("in_force_status") == "provisional":
-            warnings.append("Overeenkomst is in voorlopige toepassing — verifieer dagelijks via TARBEL.")
+            warnings.append("Akkoord is in voorlopige toepassing — verifieer via TARBEL.")
+        if proof_def.get("note"):
+            warnings.append(proof_def["note"])
+
+        direction_label = "EU → " + match.name_nl if direction == "export" else match.name_nl + " → EU"
 
         if warnings:
             return ValidationResult(
-                valid=True,
-                severity=Severity.WARNING,
-                code="OK_WITH_WARNINGS",
-                message=f"Geldig onder overeenkomst {chosen['id']}, maar let op: " + " | ".join(warnings),
-                destination=dest,
-                proof_type=proof_type,
+                valid=True, severity=Severity.WARNING, code="OK_WITH_WARNINGS",
+                message=f"Geldig voor {direction_label} onder akkoord {chosen['id']}. Let op: " + " | ".join(warnings),
+                destination=dest, direction=direction, proof_type=proof_type,
                 agreement_id=chosen["id"],
-                details={"warnings": warnings, "agreement": chosen},
+                details={"warnings": warnings, "agreement": chosen, "proof_def": proof_def},
             )
 
         return ValidationResult(
-            valid=True,
-            severity=Severity.OK,
-            code="OK",
+            valid=True, severity=Severity.OK, code="OK",
             message=(
-                f"Oorsprongsbewijs {proof_type} is geldig voor export naar {dest} "
-                f"onder overeenkomst {chosen['id']} "
-                f"({self.proof_types[proof_type]['name']})."
+                f"{proof_def['name']} is geldig voor {direction_label} "
+                f"onder akkoord {chosen['id']}."
             ),
-            destination=dest,
-            proof_type=proof_type,
+            destination=dest, direction=direction, proof_type=proof_type,
             agreement_id=chosen["id"],
-            details={"agreement": chosen},
+            details={"agreement": chosen, "proof_def": proof_def},
         )
 
     # -------------------------------------------------------------------
-    # Q&A helpers (voor LLM grounding / Streamlit)
+    # Q&A helpers
     # -------------------------------------------------------------------
 
-    def summarise_for_destination(self, country: str) -> str:
-        """Tekst-samenvatting voor mens of LLM-context.
+    def summarise_for_destination(self, country: str, direction: Direction | None = None) -> str:
+        """Tekst-samenvatting voor een bestemmingsland.
 
-        Accepteert ISO-2, ISO-3, NL/EN naam of alias.
+        Als direction is opgegeven, alleen die richting; anders beide.
         """
         match = resolve_country(country)
         if not match.matched:
-            hint = ""
-            if match.suggestions:
-                hint = f" Bedoelde je: {', '.join(match.suggestions)}?"
+            hint = f" Bedoelde je: {', '.join(match.suggestions)}?" if match.suggestions else ""
             return f"Bestemmingsland {country!r} niet herkend.{hint}"
+        if is_eu_member(match.iso2):
+            return f"{match.name_nl} ({match.iso2}) is een EU-lidstaat (intra-Unie)."
         agreements = self.agreements_by_country.get(match.iso2, [])
         if not agreements:
             return (
                 f"Geen preferentiële overeenkomst tussen EU en {match.name_nl} ({match.iso2}). "
-                f"Voor export hierheen geldt enkel een niet-preferentieel certificaat "
-                f"van oorsprong (via Kamer van Koophandel), indien gevraagd door de invoerder."
+                f"Niet-preferentieel CvO (KvK) eventueel mogelijk."
             )
-        parts = []
+
+        directions = [direction] if direction else ["export", "import"]
+        parts: list[str] = []
         for a in agreements:
-            proofs = a.get("proof_types", [])
-            proof_names = [self.proof_types[p]["name"] for p in proofs if p in self.proof_types]
-            parts.append(
-                f"• {a['country_name_nl']} ({a['id']}): "
-                f"oorsprongsbewijzen = {', '.join(proof_names)}; "
-                f"geldigheid = {a.get('validity_months', '?')} maanden; "
-                f"drawback = {a.get('drawback_allowed', 'n/a')}; "
-                f"cumulatie = {a.get('cumulation', [])}; "
-                f"PEM-status = {a.get('pem_status', 'n/a')}."
-            )
+            for d in directions:
+                proofs = self.get_proofs_for_direction(a, d)
+                if not proofs:
+                    continue
+                d_label = "EU → " + match.name_nl if d == "export" else match.name_nl + " → EU"
+                proof_strs = []
+                for p in proofs:
+                    s = p["name"]
+                    if p.get("taric_code"):
+                        s += f" (TARIC {p['taric_code']})"
+                    if p.get("threshold_eur"):
+                        s += f" — drempel {p['threshold_eur']} EUR"
+                    if p.get("requires_above_threshold"):
+                        s += f", vereist {p['requires_above_threshold']}"
+                    proof_strs.append(s)
+                parts.append(f"  {d_label} (akkoord {a['id']}): " + " | ".join(proof_strs))
         return "\n".join(parts)
