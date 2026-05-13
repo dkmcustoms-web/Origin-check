@@ -37,6 +37,9 @@ from pathlib import Path
 from typing import Any
 
 
+from .countries import resolve_country, display_name, is_eu_member, CountryMatch
+
+
 DATA_PATH = Path(__file__).parent.parent / "data" / "preferential_agreements.json"
 
 # Mapping van TARIC document codes naar interne proof type IDs.
@@ -126,12 +129,18 @@ class OriginValidator:
     # Lookup API
     # -------------------------------------------------------------------
 
-    def get_agreements_for(self, country_iso: str) -> list[dict]:
-        """Alle overeenkomsten van toepassing voor een bestemmingsland."""
-        return self.agreements_by_country.get(country_iso.upper(), [])
+    def get_agreements_for(self, country: str) -> list[dict]:
+        """Alle overeenkomsten van toepassing voor een bestemmingsland.
 
-    def has_preferential_agreement(self, country_iso: str) -> bool:
-        return bool(self.get_agreements_for(country_iso))
+        Accepteert ISO-2, ISO-3, NL/EN naam of alias.
+        """
+        match = resolve_country(country)
+        if not match.matched:
+            return []
+        return self.agreements_by_country.get(match.iso2, [])
+
+    def has_preferential_agreement(self, country: str) -> bool:
+        return bool(self.get_agreements_for(country))
 
     def list_destinations(self) -> list[str]:
         return sorted(self.agreements_by_country.keys())
@@ -160,7 +169,8 @@ class OriginValidator:
         """Valideert of een oorsprongsbewijs aanvaardbaar is voor de bestemming.
 
         Args:
-            destination_country: ISO-2 code (bv. "US", "JP", "TR")
+            destination_country: ISO-2 code OF landnaam OF alias
+                                 (bv. "US", "USA", "Verenigde Staten", "VS")
             proof_type: interne proof type key OF TARIC document code
             value_eur: zending-waarde in EUR (voor REX-drempel / 6.000 EUR check)
             agreement_id: optioneel — kies specifieke overeenkomst bij meerdere
@@ -171,7 +181,37 @@ class OriginValidator:
         Returns:
             ValidationResult met severity OK/WARNING/ERROR + uitleg
         """
-        dest = destination_country.upper()
+        # Stap 0: resolve het bestemmingsland (accepteert ISO-2, ISO-3, NL/EN naam, aliassen)
+        match = resolve_country(destination_country)
+        if not match.matched:
+            suggestion_text = ""
+            if match.suggestions:
+                suggestion_text = f" Bedoelde je: {', '.join(match.suggestions)}?"
+            return ValidationResult(
+                valid=False,
+                severity=Severity.ERROR,
+                code="UNKNOWN_COUNTRY",
+                message=f"Bestemmingsland {destination_country!r} niet herkend.{suggestion_text}",
+                destination=destination_country,
+                proof_type=proof_type,
+                details={"suggestions": match.suggestions},
+            )
+        dest = match.iso2
+
+        # Stap 0b: EU-lidstaat? Dan is een preferentieel oorsprongsbewijs niet relevant.
+        if is_eu_member(dest):
+            return ValidationResult(
+                valid=False,
+                severity=Severity.ERROR,
+                code="EU_INTRA",
+                message=(
+                    f"{match.name_nl} ({dest}) is een EU-lidstaat — dit is intra-Unie "
+                    f"verkeer en geen export. Preferentiële oorsprongsbewijzen zijn hier "
+                    f"niet van toepassing."
+                ),
+                destination=dest,
+                proof_type=proof_type,
+            )
 
         # Stap 1: vertaal eventuele TARIC code
         if proof_type.upper() in TARIC_CODE_TO_PROOF:
@@ -188,14 +228,14 @@ class OriginValidator:
             )
 
         # Stap 2: heeft de bestemming een preferentiële overeenkomst?
-        agreements = self.get_agreements_for(dest)
+        agreements = self.agreements_by_country.get(dest, [])
         if not agreements:
             return ValidationResult(
                 valid=False,
                 severity=Severity.ERROR,
                 code="NO_AGREEMENT",
                 message=(
-                    f"Geen preferentiële overeenkomst tussen EU en {dest}. "
+                    f"Geen preferentiële overeenkomst tussen EU en {match.name_nl} ({dest}). "
                     f"Oorsprongsbewijs {proof_type!r} is hier niet van toepassing. "
                     f"Eventueel kan een niet-preferentieel certificaat van oorsprong "
                     f"(KvK) nodig zijn voor de bestemming."
@@ -353,12 +393,21 @@ class OriginValidator:
     # Q&A helpers (voor LLM grounding / Streamlit)
     # -------------------------------------------------------------------
 
-    def summarise_for_destination(self, country_iso: str) -> str:
-        """Tekst-samenvatting voor mens of LLM-context."""
-        agreements = self.get_agreements_for(country_iso)
+    def summarise_for_destination(self, country: str) -> str:
+        """Tekst-samenvatting voor mens of LLM-context.
+
+        Accepteert ISO-2, ISO-3, NL/EN naam of alias.
+        """
+        match = resolve_country(country)
+        if not match.matched:
+            hint = ""
+            if match.suggestions:
+                hint = f" Bedoelde je: {', '.join(match.suggestions)}?"
+            return f"Bestemmingsland {country!r} niet herkend.{hint}"
+        agreements = self.agreements_by_country.get(match.iso2, [])
         if not agreements:
             return (
-                f"Geen preferentiële overeenkomst tussen EU en {country_iso}. "
+                f"Geen preferentiële overeenkomst tussen EU en {match.name_nl} ({match.iso2}). "
                 f"Voor export hierheen geldt enkel een niet-preferentieel certificaat "
                 f"van oorsprong (via Kamer van Koophandel), indien gevraagd door de invoerder."
             )

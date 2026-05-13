@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dkm_origin import OriginValidator, Severity
+from dkm_origin import OriginValidator, Severity, all_countries_for_dropdown, resolve_country
 
 st.set_page_config(
     page_title="DKM Origin Check",
@@ -58,20 +58,42 @@ tab_lookup, tab_validate, tab_browse = st.tabs(
 # ──────────────────────────────────────────────────────────────────
 with tab_lookup:
     st.subheader("Welke regels gelden voor mijn bestemming?")
-    destinations = validator.list_destinations()
-    dest = st.selectbox(
-        "Bestemmingsland (ISO-2)",
-        options=["— kies —"] + destinations + ["US (geen akkoord — test)", "CN (geen akkoord — test)"],
+
+    country_input = st.text_input(
+        "Bestemmingsland",
+        placeholder="Typ landnaam of ISO-code (bv. 'Japan', 'Verenigde Staten', 'VS', 'CH')",
+        help="Werkt op NL/EN naam, ISO-2, ISO-3, en aliassen zoals VS, UK, VAE",
+        key="lookup_country",
     )
-    if dest and dest not in ("— kies —",):
-        iso = dest.split()[0]
+
+    iso = None
+    if country_input:
+        match = resolve_country(country_input)
+        if match.matched:
+            st.caption(f"✓ Herkend als: **{match.name_nl}** ({match.iso2})")
+            iso = match.iso2
+        else:
+            if match.suggestions:
+                st.caption(f"⚠️ Niet herkend. Bedoel je: {', '.join(match.suggestions)}?")
+            else:
+                st.caption(f"⚠️ Land '{country_input}' niet herkend.")
+
+    if iso:
         agreements = validator.get_agreements_for(iso)
         if not agreements:
-            st.error(
-                f"❌ Geen preferentiële overeenkomst tussen EU en **{iso}**. "
-                f"Voor export hierheen: enkel niet-preferentieel certificaat van "
-                f"oorsprong (KvK) mogelijk, indien gevraagd door invoerder."
-            )
+            from dkm_origin import is_eu_member, display_name
+            if is_eu_member(iso):
+                st.info(
+                    f"ℹ️ **{display_name(iso)}** ({iso}) is een EU-lidstaat. "
+                    f"Dit is intra-Unie verkeer — preferentiële oorsprongsbewijzen "
+                    f"zijn hier niet van toepassing."
+                )
+            else:
+                st.error(
+                    f"❌ Geen preferentiële overeenkomst tussen EU en **{display_name(iso)}** ({iso}). "
+                    f"Voor export hierheen: enkel niet-preferentieel certificaat van "
+                    f"oorsprong (KvK) mogelijk, indien gevraagd door invoerder."
+                )
         else:
             for a in agreements:
                 with st.container(border=True):
@@ -117,12 +139,27 @@ with tab_validate:
 
     col1, col2 = st.columns(2)
     with col1:
-        dest = st.text_input(
-            "Bestemmingsland (ISO-2)",
-            value="US",
-            max_chars=2,
-            help="Bv. CH, JP, US, TR — wordt naar hoofdletters geconverteerd",
-        ).upper()
+        country_input = st.text_input(
+            "Bestemmingsland",
+            value="Verenigde Staten",
+            placeholder="bv. Japan, USA, Verenigde Staten, VS, CH",
+            help="NL of EN naam, ISO-2 (US, JP), ISO-3 (USA, JPN), of alias (VS, VK)",
+            key="validate_country",
+        )
+        if country_input:
+            m = resolve_country(country_input)
+            if m.matched:
+                dest_resolved = m.iso2
+                st.caption(f"✓ Herkend als: **{m.name_nl}** ({m.iso2})")
+            else:
+                dest_resolved = country_input  # raw doorgeven — validator geeft UNKNOWN_COUNTRY
+                if m.suggestions:
+                    st.caption(f"⚠️ Niet herkend. Bedoel je: {', '.join(m.suggestions)}?")
+                else:
+                    st.caption("⚠️ Niet herkend.")
+        else:
+            dest_resolved = ""
+
         proof = st.selectbox(
             "Oorsprongsbewijs / document",
             options=[
@@ -152,7 +189,7 @@ with tab_validate:
         # Strip TARIC-toelichting indien aanwezig
         proof_code = proof.split()[0]
         result = validator.validate_proof(
-            destination_country=dest,
+            destination_country=dest_resolved,
             proof_type=proof_code,
             value_eur=value if value > 0 else None,
             agreement_id=agr_id or None,
