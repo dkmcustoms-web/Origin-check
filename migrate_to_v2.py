@@ -462,6 +462,11 @@ def migrate():
             "legal_basis": agr.get("legal_basis", []),
             "special_marking": agr.get("special_marking"),
             "notes": agr.get("notes", []),
+            # Top-level metadata (handig voor de "Browse alle akkoorden" tabel)
+            "validity_months": agr.get("validity_months"),
+            "retroactive_years": agr.get("retroactive_years"),
+            # GSP-specifiek: behoud de landenlijsten
+            "gsp_categories": agr.get("gsp_categories"),
             "export": export_section,
             "import": import_section,
         }
