@@ -13,6 +13,7 @@ from .countries import (
     is_eu_member,
     CountryMatch,
 )
+from .ai_resolver import resolve_country_with_ai, is_ai_available
 
 __all__ = [
     "OriginValidator",
@@ -20,6 +21,8 @@ __all__ = [
     "Severity",
     "TARIC_CODE_TO_PROOF",
     "resolve_country",
+    "resolve_country_with_ai",
+    "is_ai_available",
     "display_name",
     "all_countries_for_dropdown",
     "is_eu_member",

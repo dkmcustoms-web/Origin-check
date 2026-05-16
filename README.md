@@ -130,6 +130,57 @@ Direct vanaf GitHub, geen Procfile nodig. Beperking: alleen public repos.
 GitHub → GitHub Actions → Azure App Service in `dkm-int-apps-rg`. Geen Oracle
 nodig, dus VNet integratie optioneel.
 
+## AI-fallback voor landherkenning (optioneel)
+
+De app gebruikt eerst een lokale resolver met ~120 landen + NL/EN namen + ISO
+codes + aliassen + fuzzy matching. Dat dekt 95% van de gebruikers-input gratis
+en instant.
+
+Voor de 5% randgevallen (input in Duits, Frans, Japans, Koreaans, omschrijvingen
+zoals "land van Eiffeltoren", ongebruikelijke typo's) is er een AI-fallback met
+**Claude Haiku 4.5**.
+
+### Inschakelen
+
+Zet de environment variable `ANTHROPIC_API_KEY`:
+
+**Lokaal:**
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+streamlit run app.py
+```
+
+**Railway:**
+1. Open je service in Railway dashboard
+2. **Variables** tab → **+ New Variable**
+3. Naam: `ANTHROPIC_API_KEY`, waarde: je API-key van console.anthropic.com
+4. Railway redeployt automatisch
+
+**Azure App Service:**
+Configuration → Application Settings → New application setting.
+
+### Gedrag
+
+- **Met API-key**: banner toont "🤖 AI-fallback voor landherkenning actief".
+  Als de lokale resolver faalt op een onbekende input, valt de app terug op
+  Haiku. Bij succes verschijnt een badge `🤖 (AI)` naast het herkende land.
+- **Zonder API-key**: banner toont "ℹ️ AI-fallback uit". De app werkt
+  volledig zoals voorheen met enkel de lokale resolver.
+
+### Kosten en performantie
+
+- Lokaal resolved: gratis, sub-millisecond
+- AI-resolved: ~$0.0002 per call met Haiku 4.5 (200ms latency typical)
+- Resultaten zijn in-process gecached (LRU, 512 entries) — herhalingen kosten niks
+- Geschatte maandelijkse kost bij intensief gebruik: <$1
+
+### Privacy
+
+Bij AI-fallback wordt enkel de ingevulde landnaam naar de Anthropic API
+gestuurd. **Geen bedrijfsdata, geen zending-waarden, geen REX-nummers**.
+De prompt is restrictief: Haiku mag enkel een ISO-2 code teruggeven of
+"UNKNOWN", en het antwoord wordt gevalideerd voor het in de app komt.
+
 ## Onderhoud
 
 Het AADA-document wordt periodiek bijgewerkt. Bij elke update:

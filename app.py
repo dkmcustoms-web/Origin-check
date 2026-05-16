@@ -8,7 +8,14 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dkm_origin import OriginValidator, Severity, resolve_country, is_eu_member, display_name
+from dkm_origin import (
+    OriginValidator,
+    Severity,
+    resolve_country_with_ai,
+    is_eu_member,
+    display_name,
+    is_ai_available,
+)
 
 st.set_page_config(
     page_title="DKM Origin Check",
@@ -42,6 +49,11 @@ st.caption(
     "Op basis van AADA — OEO D.D. 15.316 (bijwerking 30 april 2026). "
     "Informatief; verifieer steeds tegen EUR-LEX en TARBEL."
 )
+
+if is_ai_available():
+    st.caption("🤖 AI-fallback voor landherkenning actief (Haiku) — typ in elke taal.")
+else:
+    st.caption("ℹ️ AI-fallback uit — zet `ANTHROPIC_API_KEY` in env voor multi-taal herkenning.")
 
 tab_lookup, tab_validate, tab_browse = st.tabs(
     ["🔎 Lookup per bestemming", "✅ Aangifte-validatie", "📚 Browse alle akkoorden"]
@@ -104,9 +116,11 @@ with tab_lookup:
 
     iso = None
     if country_input:
-        match = resolve_country(country_input)
+        with st.spinner("Land herkennen..."):
+            match = resolve_country_with_ai(country_input)
         if match.matched:
-            st.caption(f"✓ Herkend als: **{match.name_nl}** ({match.iso2})")
+            method_badge = "🤖 (AI)" if match.method == "ai" else ""
+            st.caption(f"✓ Herkend als: **{match.name_nl}** ({match.iso2}) {method_badge}")
             iso = match.iso2
         else:
             if match.suggestions:
@@ -191,10 +205,12 @@ with tab_validate:
             key="validate_country",
         )
         if country_input:
-            m = resolve_country(country_input)
+            with st.spinner("Land herkennen..."):
+                m = resolve_country_with_ai(country_input)
             if m.matched:
                 dest_resolved = m.iso2
-                st.caption(f"✓ Herkend als: **{m.name_nl}** ({m.iso2})")
+                method_badge = "🤖 (AI)" if m.method == "ai" else ""
+                st.caption(f"✓ Herkend als: **{m.name_nl}** ({m.iso2}) {method_badge}")
             else:
                 dest_resolved = country_input
                 if m.suggestions:
